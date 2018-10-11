@@ -1,5 +1,3 @@
-package client
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._

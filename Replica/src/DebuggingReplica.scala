@@ -1,5 +1,3 @@
-package replica
-
 import lsr.common.Configuration
 import lsr.paxos.replica.Replica
 import lsr.service.Service

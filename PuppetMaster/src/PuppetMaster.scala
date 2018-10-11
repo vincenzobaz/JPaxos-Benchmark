@@ -1,5 +1,3 @@
-package client
-
 import akka.NotUsed
 import akka.actor.Cancellable
 import akka.http.scaladsl.Http
@@ -21,7 +19,6 @@ object PuppetMaster extends App {
 
   import Receptionist._
 
-  val logger: Logger = LoggerFactory.getLogger(classOf[PaxosClient])
 
   val receptionist = Receptionist(args.drop(1))
 

@@ -1,17 +1,24 @@
-package client
-
 import lpd.register.{Command, CommandType, Response}
 import lsr.paxos.client.{Client => PaxosClient}
 import lsr.common.Configuration
 
 import scala.util.Random
 import scala.concurrent.duration._
-
 import akka.NotUsed
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Flow, Source}
-import akka.stream.ThrottleMode
+import akka.stream.{ActorMaterializer, ThrottleMode}
+import org.slf4j.{Logger, LoggerFactory}
+
+import scala.concurrent.ExecutionContextExecutor
 
 object SpammerClient extends App {
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  // needed for the future flatMap/onComplete in the end
+  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+  val logger: Logger = LoggerFactory.getLogger(classOf[PaxosClient])
+
   // PHASE 1: Start all the replicas and the client
   val paxosClient = new PaxosClient(new Configuration(args(0)))
   paxosClient.connect()
@@ -29,5 +36,4 @@ object SpammerClient extends App {
   val source: Source[Response, NotUsed] = Source(responses)
   val modulator = Flow[Response].throttle(1, 1 seconds, 0, ThrottleMode.Shaping)
   source.via(modulator).runForeach(r => logger.info(s"Operation completed: ${r.toString}"))
-
 }
