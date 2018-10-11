@@ -33,7 +33,7 @@ lazy val Client = (project in file ("Client"))
 	.settings(
 		name := "Client",
 		libraryDependencies ++= dependencies,
-		mainClass in assembly := Some("Spammer"),
+		mainClass in assembly := Some("SpammerClient"),
 		assemblyJarName in assembly := "Spammer.jar",
 		scalaSource in Compile := baseDirectory.value / "src"
 	).dependsOn(JPaxos, common)
