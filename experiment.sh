@@ -5,16 +5,6 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-# Check if jars exist
-if [ ! -f ./Replica/target/scala-2.12/ReplicaManager.jar ]; then
-	echo "ReplicaManager.jar does not exist, creating it"
-	sbt "Replica / assembly"
-fi
-if [ ! -f ./Client/target/scala-2.12/Spammer.jar ]; then
-	echo "ReplicaManager.jar does not exist, creating it"
-	sbt "Client / assembly"
-fi
-
 function clearLog {
 	if [ -f $1 ]; then
 		echo "$1 exists, deleting it"
@@ -41,6 +31,11 @@ function stop_replicas {
 }
 
 function start_replica_managers {
+	if [ ! -f ./Replica/target/scala-2.12/ReplicaManager.jar ]; then
+		echo "ReplicaManager.jar does not exist, creating it"
+		sbt "Replica / assembly"
+	fi
+
 	for i in `seq 0 $(($1 - 1))`; do
 		log="replica$i.out"
 		clearLog $log
@@ -54,6 +49,11 @@ function start_replica_managers {
 }
 
 function start_clients {
+	if [ ! -f ./Client/target/scala-2.12/Spammer.jar ]; then
+		echo "ReplicaManager.jar does not exist, creating it"
+		sbt "Client / assembly"
+	fi
+
 	for i in `seq 0 $(($1 - 1))`; do
 		log="client$i.out"
 		clearLog $log
