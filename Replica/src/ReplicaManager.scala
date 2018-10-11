@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives._
 import lpd.register.IntRegisterService
 import lsr.common.Configuration
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.Future
 
 object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
   val configFile = args(1)
@@ -52,7 +52,7 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
         }
     }
 
-  val bindingFuture = Http().bindAndHandle(route, "localhost", port)
+  val bindingFuture = Http().bindAndHandle(route, "0.0.0.0", port)
 
   val responseFuture: Future[HttpResponse] =
     Http()(system).singleRequest(HttpRequest(uri = s"$masterAddr/$localId/imUp"))

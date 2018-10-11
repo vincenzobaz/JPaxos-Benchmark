@@ -5,12 +5,6 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-# Clear logs
-if [ -d jpaxosLogs ]; then
-	echo "Found log folder, deleting"
-	rm -rf jpaxosLogs
-fi
-
 # Check if jars exist
 if [ ! -f ./Replica/target/scala-2.12/ReplicaManager.jar ]; then
 	echo "ReplicaManager.jar does not exist, creating it"
@@ -47,7 +41,6 @@ function stop_replicas {
 }
 
 function start_replica_managers {
-# Launch the replicas
 	for i in `seq 0 $(($1 - 1))`; do
 		log="replica$i.out"
 		clearLog $log
@@ -61,12 +54,11 @@ function start_replica_managers {
 }
 
 function start_clients {
-	# Launch the Clients
-	for i in `seq 0 $(($3 - 1))`; do
+	for i in `seq 0 $(($1 - 1))`; do
 		log="client$i.out"
 		clearLog $log
 		# Listens on 8000 + i, contacts Master @ 127.0.0.1:9090
-		comm="java -jar Client/target/scala-2.12/Spammer.jar paxos.properties $((8000 + $i)) > $log &"
+		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log &"
 		eval $comm
 	done
 }
@@ -76,7 +68,7 @@ function stop_clients {
 		echo "Stopping client $i"
 		address="http://127.0.0.1:$((8000 + $i))/stop"
 		res="$(curl -s -G $address)"
-		echo "Cleint replied: $res"
+		echo "Client replied: $res"
 	done
 }
 
@@ -93,7 +85,6 @@ function clear_logs {
 	rm *.out
 }
 
-
 case "$1" in
 	"help")
 		usage
@@ -102,7 +93,7 @@ case "$1" in
 		clear_logs
 		start_replica_managers $2 $3 # $2=#reps, $3=.properties file
 		start_replicas $2
-		start_clients $4 # $4=#clients
+		start_clients $4 $3 # $4=#clients
 		tail -f *.out
 		;;
 	"stop")

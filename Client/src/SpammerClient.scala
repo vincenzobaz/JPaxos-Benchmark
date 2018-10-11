@@ -28,7 +28,8 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
       .map(new Response(_))
   }
 
-  val bindingFuture = Http().bindAndHandle(stopRoute, "localhost", args(1).toInt)
+  val bindingFuture = Http().bindAndHandle(stopRoute, "0.0.0.0", args(1).toInt)
+  
   val source: Source[Response, NotUsed] = Source(responses)
   val modulator = Flow[Response].throttle(1, 1 seconds, 0, ThrottleMode.Shaping)
   source.via(modulator).runForeach(r => logger.info(s"Operation completed: ${r.toString}"))

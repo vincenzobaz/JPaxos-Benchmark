@@ -15,12 +15,9 @@ import scala.concurrent.duration._
 import org.slf4j.{Logger, LoggerFactory}
 
 
-object PuppetMaster extends App {
+object PuppetMaster extends App with AkkaConfig {
 
-  import Receptionist._
-
-
-  val receptionist = Receptionist(args.drop(1))
+  val receptionist = new Receptionist(args.drop(1))
 
   // PHASE 1: Start all the replicas
   receptionist.remotes.foreach(_.start)
