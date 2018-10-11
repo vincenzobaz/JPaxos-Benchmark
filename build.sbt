@@ -4,14 +4,21 @@ scalaVersion := "2.12.7"
 
 lazy val JPaxos = ProjectRef(file("../JPaxos"), "jpaxos")
 
+lazy val common = (project in file("common"))
+  .settings(
+    name := "common",
+    libraryDependencies ++= dependencies,
+    scalaSource in Compile := baseDirectory.value / "src"
+  )
+
 lazy val Replica = (project in file ("Replica"))
 	.settings(
 		name := "Replica",
-		libraryDependencies ++= dependencies,
+    libraryDependencies ++= dependencies,
 		mainClass in assembly := Some("ReplicaManager"),
 		assemblyJarName in assembly := "ReplicaManager.jar",
 		scalaSource in Compile := baseDirectory.value / "src"
-	).dependsOn(JPaxos)
+	).dependsOn(JPaxos, common)
 
 lazy val PuppetMaster = (project in file ("PuppetMaster"))
 	.settings(
@@ -20,30 +27,20 @@ lazy val PuppetMaster = (project in file ("PuppetMaster"))
 		mainClass in assembly := Some("PuppetMaster"),
 		assemblyJarName in assembly := "PuppetMaster.jar",
 		scalaSource in Compile := baseDirectory.value / "src"
-	).dependsOn(JPaxos)
+	).dependsOn(JPaxos, common)
 
 lazy val Client = (project in file ("Client"))
 	.settings(
 		name := "Client",
 		libraryDependencies ++= dependencies,
-		mainClass in assembly := Some("Client"),
-		assemblyJarName in assembly := "Client.jar",
+		mainClass in assembly := Some("Spammer"),
+		assemblyJarName in assembly := "Spammer.jar",
 		scalaSource in Compile := baseDirectory.value / "src"
-	).dependsOn(JPaxos)
+	).dependsOn(JPaxos, common)
 
 
 val dependencies = Seq(
   "com.typesafe.akka" %% "akka-http"   % "10.1.5",
   "com.typesafe.akka" %% "akka-stream" % "2.5.12"
 )
-
-/*
-libraryDependencies ++= Seq(
-scalaSource in Test := baseDirectory.value / "test"
-  "com.typesafe.akka" %% "akka-http"   % "10.1.5",
-  "com.typesafe.akka" %% "akka-stream" % "2.5.12"
-)
-*/
-
-//javaOptions += "-DLogback.configurationFile=./lib/logback.xml"
 

@@ -1,6 +1,7 @@
 import lsr.common.Configuration
 import lsr.paxos.replica.Replica
 import lsr.service.Service
+
 import org.slf4j.{Logger, LoggerFactory}
 
 object DebuggingReplica {
