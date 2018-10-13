@@ -5,8 +5,10 @@ import lsr.paxos.client.{Client => PaxosClient}
 import lsr.common.Configuration
 import akka.NotUsed
 import akka.http.scaladsl.Http
-import akka.stream.scaladsl.{Flow, Source}
-import akka.stream.ThrottleMode
+import akka.io.Udp.SO.Broadcast
+import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source}
+import akka.stream._
+import akka.stream.javadsl.RunnableGraph
 import org.slf4j.{Logger, LoggerFactory}
 
 object SpammerClient extends App with AkkaConfig with NetworkStoppable {
@@ -20,17 +22,36 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
   paxosClient.connect()
 
   // Classical Scala stream
-  val responses: Stream[Response] = {
+  val requests: Stream[Command] = {
     val random = new Random()
     Stream.continually(random.nextBoolean())
       .map(isRead => if (isRead) new Command(CommandType.READ, -1) else new Command(CommandType.WRITE, random.nextInt))
-      .map(_.toByteArray)
-      .map(paxosClient.execute(_))
-      .map(new Response(_))
   }
 
+  val graph = Flow.fromGraph( GraphDSL.create() { implicit builder =>
+    import GraphDSL.Implicits._
 
-  val source: Source[Response, NotUsed] = Source(responses)
-  val modulator = Flow[Response].throttle(1, 1 seconds, 0, ThrottleMode.Shaping)
-  source.via(modulator).runForeach(r => logger.info(s"Operation completed: ${r.toString}"))
+    val serializedCommands = Flow[Command].map(_.toByteArray)
+    val serializedResponses = Flow[Array[Byte]].map(paxosClient.execute(_))
+    val responses = Flow[Array[Byte]].map(new Response(_))
+
+    val zipper = builder.add(scaladsl.Zip[Command, Response]())
+    val bcast1 = builder.add(scaladsl.Broadcast[Array[Byte]](2))
+    val bcast2 = builder.add(scaladsl.Broadcast[Array[Byte]](2))
+    val bcast3 = builder.add(scaladsl.Broadcast[Command](2))
+
+    bcast3 ~> serializedCommands ~> bcast1 ~> Sink.foreach[Array[Byte]](_ => logger.info("Requested operation"))
+    bcast1 ~> serializedResponses ~> bcast2 ~> Sink.foreach[Array[Byte]](_ => logger.info("Completed operation"))
+    bcast2 ~> responses ~> zipper.in1
+    bcast3 ~> zipper.in0
+
+    FlowShape(bcast3.in, zipper.out)
+  })
+
+  val modulator = Flow[Command].throttle(1, 1 seconds, 0, ThrottleMode.Shaping)
+
+  Source(requests)
+    //.via(modulator)
+    .via(graph)
+    .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
 }
