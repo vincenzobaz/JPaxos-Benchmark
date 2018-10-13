@@ -10,9 +10,10 @@ import akka.stream.ThrottleMode
 import org.slf4j.{Logger, LoggerFactory}
 
 object SpammerClient extends App with AkkaConfig with NetworkStoppable {
- // needed for the future flatMap/onComplete in the end
-  //implicit val executionContext: ExecutionContextExecutor = system.dispatcher
   val logger: Logger = LoggerFactory.getLogger(classOf[PaxosClient])
+
+  // Listen to stop messages
+  val bindingFuture = Http().bindAndHandle(stopRoute, "0.0.0.0", args(1).toInt)
 
   // PHASE 1: Start the client
   val paxosClient = new PaxosClient(new Configuration(args(0)))
@@ -28,8 +29,7 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
       .map(new Response(_))
   }
 
-  val bindingFuture = Http().bindAndHandle(stopRoute, "0.0.0.0", args(1).toInt)
-  
+
   val source: Source[Response, NotUsed] = Source(responses)
   val modulator = Flow[Response].throttle(1, 1 seconds, 0, ThrottleMode.Shaping)
   source.via(modulator).runForeach(r => logger.info(s"Operation completed: ${r.toString}"))

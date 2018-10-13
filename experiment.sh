@@ -50,7 +50,7 @@ function start_replica_managers {
 
 function start_clients {
 	if [ ! -f ./Client/target/scala-2.12/Spammer.jar ]; then
-		echo "ReplicaManager.jar does not exist, creating it"
+		echo "Spammer.jar does not exist, creating it"
 		sbt "Client / assembly"
 	fi
 
@@ -59,6 +59,7 @@ function start_clients {
 		clearLog $log
 		# Listens on 8000 + i, contacts Master @ 127.0.0.1:9090
 		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log &"
+		echo $comm
 		eval $comm
 	done
 }
@@ -81,7 +82,7 @@ function usage {
 }
 
 function clear_logs {
-	rm -rf paxosLogs
+	rm -rf jpaxosLogs
 	rm *.out
 }
 

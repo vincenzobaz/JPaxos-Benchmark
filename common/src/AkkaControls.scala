@@ -4,6 +4,9 @@ import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 
+import scala.concurrent.duration._
+import scala.concurrent.Future
+
 import scala.concurrent.ExecutionContext
 
 trait AkkaConfig {
@@ -21,10 +24,12 @@ trait NetworkStoppable {
     }
   }
 
-  def stopRoute(implicit as: ActorSystem, ex: ExecutionContext ): Route = {
+  def stopRoute(implicit as: ActorSystem, ex: ExecutionContext): Route = {
     path("stop") {
       get {
-        exit(0)
+        akka.pattern.after(1 seconds, as.scheduler) {
+          Future(exit(0))
+        }
         complete("Goodbye")
       }
     }
