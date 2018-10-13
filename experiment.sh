@@ -107,6 +107,9 @@ case "$1" in
 	"clear_jars")
 		rm Client/target/scala-2.12/*.jar
 		rm Replica/target/scala-2.12/*.jar
-	;;
+		;;
+	"start_log_server")
+		sbt "runMain ch.qos.logback.classic.net.SimpleSocketServer 6000 server_logback.xml"
+		;;
 esac
 
