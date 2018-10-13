@@ -1,0 +1,16 @@
+<configuration debug="true">
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>all_clients.out</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <appender-ref ref="FILE"/>
+        <immediateFlush>true</immediateFlush>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
+
