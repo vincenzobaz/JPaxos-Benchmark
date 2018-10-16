@@ -5,6 +5,13 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
+log_folder="logs"
+
+if [ ! -d $log_folder ]; then
+	echo "Create directory to store logs"
+	mkdir $log_folder
+fi
+
 function clearLog {
 	if [ -f $1 ]; then
 		echo "$1 exists, deleting it"
@@ -37,15 +44,13 @@ function start_replica_managers {
 	fi
 
 	for i in `seq 0 $(($1 - 1))`; do
-		log="replica$i.out"
+		log="$log_folder/replica$i.out"
 		clearLog $log
 		# Listens on 7000 + i
 		comm="./loop_replica.sh $i $2 > $log &"
 		eval $comm
 	done
-	sleep 5
-	echo "Starting replicas"
-	./start_replicas.sh $1
+	echo "Starting replica managers"
 }
 
 function start_clients {
@@ -55,7 +60,7 @@ function start_clients {
 	fi
 
 	for i in `seq 0 $(($1 - 1))`; do
-		log="client$i.out"
+		log="$log_folder/client$i.out"
 		clearLog $log
 		# Listens on 8000 + i, contacts Master @ 127.0.0.1:9090
 		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log &"
@@ -83,7 +88,7 @@ function usage {
 
 function clear_logs {
 	rm -rf jpaxosLogs
-	rm *.out
+	rm -rf $log_folder/*.out
 }
 
 case "$1" in
@@ -93,9 +98,11 @@ case "$1" in
 	"run")
 		clear_logs
 		start_replica_managers $2 $3 # $2=#reps, $3=.properties file
+		sleep $4
 		start_replicas $2
+		sleep $4
 		start_clients $4 $3 # $4=#clients
-		tail -f *.out
+		tail -f $log_folder/*.out
 		;;
 	"stop")
 		stop_clients $3 # $3=#clients
