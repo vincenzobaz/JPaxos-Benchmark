@@ -30,7 +30,7 @@ trait NetworkStoppable {
         akka.pattern.after(1 seconds, as.scheduler) {
           Future(exit(0))
         }
-        complete("Goodbye")
+        complete("Goodbye\n")
       }
     }
   }
