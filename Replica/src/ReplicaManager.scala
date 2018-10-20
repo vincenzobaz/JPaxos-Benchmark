@@ -34,9 +34,9 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
             if (!isRunning) {
               startReplica()
               isRunning = true
-              complete("Replica started")
+              complete("Replica started\n")
             } else {
-              complete("Replica was already running")
+              complete("Replica was already running\n")
             }
           }
         } ~
@@ -44,9 +44,9 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
           get {
             if (isRunning) {
               exit(1)
-              complete("Killed")
+              complete("Killed\n")
             } else {
-              complete("Replica was already killed")
+              complete("Replica was already killed\n")
             }
           }
         }
