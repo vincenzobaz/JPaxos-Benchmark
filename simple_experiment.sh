@@ -1,5 +1,6 @@
 #!/bin/bash
 . ./experiment.sh
+export _JAVA_OPTIONS="-ea"
 
 output=""
 reps=3
@@ -9,17 +10,27 @@ cls=5
 ./experiment_cli.sh run $reps generated-paxos.properties $cls
 output="$reps $cls $(date +%s%3N)"
 
+sleep 1m
+
+kill_replica 0
+output="$output $(date +%s%3N)"
+
+sleep 1m
+
+start_replica 0
+output="$output $(date +%s%3N)"
+
 sleep 30s
 
-kill_replica 1
+kill_replica 0
 output="$output $(date +%s%3N)"
 
-sleep 20s
+sleep 30s
 
-start_replica 1
+start_replica 0
 output="$output $(date +%s%3N)"
 
-sleep 15s
+sleep 30s
 
 echo "Stopping experiment"
 output="$output $(date +%s%3N)"
