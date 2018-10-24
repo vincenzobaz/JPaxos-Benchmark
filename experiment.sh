@@ -14,13 +14,14 @@ function clearLog {
 }
 
 function kill_replica {
+	echo "Killing replica $1"
 	address="http://127.0.0.1:$((7000 + $1))/kill"
-	curl -s -G $address
-	echo "Killed replica $1"
+	res="$(curl -s -G $address)"
+	echo "Replica replied $res"
 }
 
 function start_replica {
-	echo "Restarting replica $1"
+	echo "Starting replica $1"
 	address="http://127.0.0.1:$((7000 + $1))/start"
 	res="$(curl -s -G $address)"
 	echo "Replica replied: $res"
