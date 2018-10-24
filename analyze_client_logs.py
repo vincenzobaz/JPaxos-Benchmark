@@ -58,7 +58,7 @@ def compute_buckets(times_matrix, bucket_size, end_date):
 
     Returns a numpy array containing the fraction of operations in each bucket
     """
-    bucket_count = math.ceil(end_date / bucket_size) + 2
+    bucket_count = math.ceil(end_date / bucket_size) + 1
     buckets = np.zeros((bucket_count,))
 
     for start, end in times_matrix:
