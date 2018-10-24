@@ -1,5 +1,5 @@
 #!/bin/bash
-. ./experiment.sh
+. ./experiment.sh # Import functions to manage replicas / clients :)
 
 if [[ $# -lt 1 ]]; then
     echo "Not enough arguments"
