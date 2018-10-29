@@ -15,7 +15,7 @@ class DebuggingReplica(conf: Configuration, id: Int, srv: Service)
 
   override def start() {
     super.start()
-    addLogListener(_ => logger.info(s"Log changed! ${logView()}"))
+    //addLogListener(_ => logger.info(s"Log changed! ${logView()}"))
     addViewChangeListener((newView, newLeader) =>
       logger.info(s"entered view $newView lead by $newLeader"))
   }
