@@ -45,7 +45,11 @@ function stop_replicas {
 function start_replica_managers {
 	if [ ! -f ./Replica/target/scala-2.12/ReplicaManager.jar ]; then
 		echo "ReplicaManager.jar does not exist, creating it"
-		sbt "Replica / assembly"
+		if [ -x sbt-client ]; then
+			sbt-client "Replica / assembly"
+		else
+			sbt "Replica / assembly"
+		fi
 	fi
 
 	for i in `seq 0 $(($1 - 1))`; do
@@ -61,7 +65,11 @@ function start_replica_managers {
 function start_clients {
 	if [ ! -f ./Client/target/scala-2.12/Spammer.jar ]; then
 		echo "Spammer.jar does not exist, creating it"
-		sbt "Client / assembly"
+		if [ -x sbt-client ]; then
+			sbt-client "Client / assembly"
+		else
+			sbt "Client / assembly"
+		fi
 	fi
 
 	for i in `seq 0 $(($1 - 1))`; do
