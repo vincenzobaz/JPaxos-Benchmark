@@ -76,7 +76,7 @@ function start_clients {
 		log="$log_folder/client$i.out"
 		clearLog $log
 		# Listens on 8000 + i, contacts Master @ 127.0.0.1:9090
-		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log &"
+		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log 2>&1 &"
 		echo $comm
 		eval $comm
 	done
