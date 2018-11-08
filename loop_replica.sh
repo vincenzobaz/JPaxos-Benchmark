@@ -7,6 +7,8 @@ do
     if [ $? -eq 0 ]; then
         break
     fi
-    echo "Replica $1 was killed. Respawning.."
+    event_time="$(date +%s%3N)"
+
+    printf "$event_time\tReplica $1 was killed. Respawning...\n"
 done
 
