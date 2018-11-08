@@ -12,11 +12,14 @@ class DebuggingReplica(conf: Configuration, id: Int, srv: Service)
     extends Replica(conf, id, srv) {
 
   import DebuggingReplica._
+  var leader = 0
 
   override def start() {
     super.start()
     //addLogListener(_ => logger.info(s"Log changed! ${logView()}"))
-    addViewChangeListener((newView, newLeader) =>
-      logger.info(s"entered view $newView lead by $newLeader"))
+    addViewChangeListener((newView, newLeader) => {
+      logger.info(s"entered view $newView lead by $newLeader")
+      leader = newLeader
+    })
   }
 }

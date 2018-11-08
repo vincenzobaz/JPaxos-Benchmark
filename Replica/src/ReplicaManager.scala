@@ -26,7 +26,8 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
     stopRoute ~ {
       path("status") {
         get {
-          complete(isRunning.toString)
+          if (isRunning) complete(replica.leader.toString)
+          else complete("Not running")
         }
       } ~
         path("start") {
