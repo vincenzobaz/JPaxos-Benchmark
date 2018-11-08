@@ -1,11 +1,6 @@
 #!/bin/bash
 . ./experiment.sh # Import functions to manage replicas / clients :)
 
-if [[ $# -lt 1 ]]; then
-    echo "Not enough arguments"
-    exit 1
-fi
-
 function usage {
 	echo "Usage:"
 	echo "run [num_replicas] [properties_file] [num_clients]"
@@ -13,6 +8,12 @@ function usage {
 	echo "clear_logs"
 	echo "clear_jars"
 }
+
+if [[ $# -lt 1 ]]; then
+    echo "Not enough arguments"
+    usage
+    exit 1
+fi
 
 case "$1" in
 	"help")
