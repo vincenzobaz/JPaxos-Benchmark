@@ -56,7 +56,7 @@ function start_replica_managers {
 		log="$log_folder/replica$i.out"
 		clearLog $log
 		# Listens on 7000 + i
-		comm="./loop_replica.sh $i $2 > $log &"
+		comm="./loop_replica.sh $i $2 > $log 2>&1 &"
 		eval $comm
 	done
 	echo "Starting replica managers"
@@ -94,5 +94,11 @@ function stop_clients {
 function clear_logs {
 	rm -rf jpaxosLogs
 	rm -rf $log_folder/*.out
+}
+
+function get_leader {
+	address="http://127.0.0.1:$((7002))/status"
+	res="$(curl -s -G $address)"
+	echo "$res"
 }
 
