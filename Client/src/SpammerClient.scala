@@ -21,22 +21,6 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
   val paxosClient = new PaxosClient(new Configuration(args(0)))
   paxosClient.connect()
 
-  /*
-  val random = new Random()
-  while (true) {
-    val isRead = random.nextBoolean()
-    val value = random.nextInt()
-    val command = new Command(if(isRead) CommandType.READ else CommandType.WRITE, value)
-    val commandBytes = command.toByteArray
-    logger.info("Requested operation")
-    val responseBytes = paxosClient.execute(commandBytes)
-    logger.info("Completed operation")
-
-    val response = new Response(responseBytes)
-    //logger.info(s"Request: ${command.toString} - Response: ${response.toString} ")
-  }
-  */
-
   // Classical Scala stream
   val requests: Stream[Command] = {
     val random = new Random()
@@ -67,7 +51,7 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
   val modulator = Flow[Command].throttle(3, 1 seconds, 0, ThrottleMode.Shaping)
 
   Source(requests)
-    .via(modulator)
+    //.via(modulator)
     .via(graph)
     .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
 }
