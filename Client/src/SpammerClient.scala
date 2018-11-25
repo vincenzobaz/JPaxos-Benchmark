@@ -1,18 +1,12 @@
 import scala.util.Random
-import scala.concurrent.duration._
-import lpd.register.{Command, CommandType, Response}
+import lpd.register.{Command, CommandType}
 import lsr.paxos.client.{Client => PaxosClient}
 import lsr.common.Configuration
-import akka.NotUsed
 import akka.http.scaladsl.Http
-import akka.io.Udp.SO.Broadcast
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source}
-import akka.stream._
-import akka.stream.javadsl.RunnableGraph
-import org.slf4j.{Logger, LoggerFactory}
 
 object SpammerClient extends App with AkkaConfig with NetworkStoppable {
-  val logger: Logger = LoggerFactory.getLogger(classOf[PaxosClient])
+
+  val localId = args(2).toInt
 
   // Listen to stop messages
   val bindingFuture = Http().bindAndHandle(stopRoute, "0.0.0.0", args(1).toInt)
@@ -28,30 +22,13 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
       .map(isRead => if (isRead) new Command(CommandType.READ, -1) else new Command(CommandType.WRITE, random.nextInt))
   }
 
-  val graph = Flow.fromGraph( GraphDSL.create() { implicit builder =>
-    import GraphDSL.Implicits._
-
-    val serializedCommands = Flow[Command].map(_.toByteArray)
-    val serializedResponses = Flow[Array[Byte]].map(paxosClient.execute(_))
-    val responses = Flow[Array[Byte]].map(new Response(_))
-
-    val zipper = builder.add(scaladsl.Zip[Command, Response]())
-    val bcast1 = builder.add(scaladsl.Broadcast[Array[Byte]](2))
-    val bcast2 = builder.add(scaladsl.Broadcast[Array[Byte]](2))
-    val bcast3 = builder.add(scaladsl.Broadcast[Command](2))
-
-    bcast3 ~> serializedCommands ~> bcast1 ~> Sink.foreach[Array[Byte]](_ => logger.info("Requested operation"))
-    bcast1 ~> serializedResponses ~> bcast2 ~> Sink.foreach[Array[Byte]](_ => logger.info("Completed operation"))
-    bcast2 ~> responses ~> zipper.in1
-    bcast3 ~> zipper.in0
-
-    FlowShape(bcast3.in, zipper.out)
-  })
-
-  val modulator = Flow[Command].throttle(3, 1 seconds, 0, ThrottleMode.Shaping)
-
-  Source(requests)
-    //.via(modulator)
-    .via(graph)
-    .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
+  val logger = {
+    if (args.length >= 4 && args(3) != "null") {
+      println("Starting spy")
+      new PuppetMasterSpy(requests, paxosClient, localId, args(3))
+    } else {
+      println("Starting logger")
+      new LogSpammer(requests, paxosClient)
+    }
+  }
 }
