@@ -1,25 +1,41 @@
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Directives._
 import lpd.register.IntRegisterService
 import lsr.common.Configuration
 
-import scala.concurrent.Future
+import scala.util.{Try, Failure, Success}
 
 object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
   val configFile = args(1)
   val localId = args(0).toInt
   val port = args(2).toInt
-  val masterAddr = args(3)
+  val masterAddr = {
+    Try(args(3)).toOption match {
+      case Some("") => None
+      case Some(x) => Some(x)
+      case None => None
+    }
+  }
 
   var isRunning = false
   var replica: DebuggingReplica = null
 
   def startReplica(): Unit = {
-    replica = new DebuggingReplica(new Configuration(configFile),
+    replica = new DebuggingReplica(
+      new Configuration(configFile),
       localId,
-      new IntRegisterService())
+      new IntRegisterService(),
+      masterAddr)
     replica.start()
+    /*
+    if (masterAddr.nonEmpty) {
+      Http()(system).singleRequest(HttpRequest(uri = s"${masterAddr.get}/$localId/imUp")) onComplete {
+        case Success(_) =>
+        case Failure(e) => println("Could not notify I am up " + e)
+      }
+    }
+    */
   }
 
   val route =
@@ -55,7 +71,5 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
 
   val bindingFuture = Http().bindAndHandle(route, "0.0.0.0", port)
 
-  val responseFuture: Future[HttpResponse] =
-    Http()(system).singleRequest(HttpRequest(uri = s"$masterAddr/$localId/imUp"))
   println(s"Replica control interface online at http://0.0.0.0:$port")
 }
