@@ -1,33 +1,44 @@
-import akka.NotUsed
-import akka.actor.Cancellable
+import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.Http
-import akka.stream.ThrottleMode
-import akka.stream.scaladsl.{Flow, Source}
-import akka.pattern
-
-import lpd.register.{Command, CommandType, Response}
-import lsr.paxos.client.{Client => PaxosClient}
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.pattern.ask
+import akka.util.Timeout
 
 import scala.concurrent.Future
-import scala.io.StdIn
 import scala.concurrent.duration._
 
-import org.slf4j.{Logger, LoggerFactory}
-
-
-object PuppetMaster extends App with AkkaConfig {
+object PuppetMaster extends App with AkkaConfig with ClientProtocol with ReplicaProtocol {
 
   val receptionist = new Receptionist(args.drop(1))
 
-  // PHASE 1: Start all the replicas
-  receptionist.remotes.foreach(_.start)
+  private val timingsHolder: ActorRef = system.actorOf(Props[PastHolder[OperationTiming]], "timings-holder")
+  private val viewsHolder: ActorRef = system.actorOf(Props[PastHolder[NewView]], "views-holder")
+  private implicit val timeout: Timeout = 5 seconds
 
-  pattern.after(5 seconds, system.scheduler)(Future { receptionist.remotes(0).kill })
-  //Source.tick(0 seconds, 10 seconds, ()).runForeach(_ => receptionist.remotes(0).kill)
-  //Source.tick(15 seconds, 5 seconds, ()).runForeach(_ => if (receptionist.remotes(0).isUp) receptionist.remotes(0).start)
+  val route = path("client") {
+    post {
+      entity(as[OperationTiming]) { ot =>
+        timingsHolder ! ot
+        complete(StatusCodes.Accepted)
+      }
+    } ~ get {
+      val timings: Future[Timings] = (timingsHolder ? Get).mapTo[List[OperationTiming]].map(Timings)
+      complete(timings)
+    }
+  } ~ path("replica") {
+    post {
+      entity(as[NewView]) { nv =>
+        viewsHolder ! nv
+        complete(StatusCodes.Accepted)
+      }
+    }
+  } ~ path("leaders") {
+    get {
+      val viewsF: Future[Views] = (viewsHolder ? Get).mapTo[List[NewView]].map(Views)
+      complete(viewsF)
+    }
+  }
 
-  Http().bindAndHandle(receptionist.route, "localhost", 9090)
-  StdIn.readLine()
-
-  receptionist.remotes.foreach(_.stop)
+  val bindingFuture = Http().bindAndHandle(route, "localhost", 9090)
 }
