@@ -47,5 +47,7 @@ lazy val Client = (project in file("Client"))
 val dependencies = Seq(
   "com.typesafe.akka" %% "akka-http" % "10.1.5",
   "com.typesafe.akka" %% "akka-stream" % "2.5.12",
+  "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5",
+  "io.spray" %% "spray-json" % "1.3.3",
   "ch.qos.logback" % "logback-classic" % "1.2.3"
 )
