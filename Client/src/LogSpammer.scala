@@ -31,7 +31,7 @@ class LogSpammer(requests: Stream[Command], paxosClient: PaxosClient) extends Ak
   })
 
   Source(requests)
-    .via(Flow[Command].throttle(3, 1 seconds, 0, ThrottleMode.Shaping))
+    //.via(Flow[Command].throttle(3, 1 seconds, 0, ThrottleMode.Shaping))
     .via(graph)
     .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
 }
