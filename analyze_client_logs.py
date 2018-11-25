@@ -2,6 +2,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import sys
+import requests
 
 
 def create_time_matrix_client(data):
@@ -53,7 +54,7 @@ def compute_buckets(times_matrix, bucket_size, end_date):
     """Computes the throughput.
 
     Keyword arguments:
-    times_matrix -- the mmatrix of milliseconds times |start|end|duration
+    times_matrix -- the mmatrix of milliseconds times |start|end|
     bucket_size -- the width of the bucket in milliseconds
 
     Returns a numpy array containing the fraction of operations in each bucket
@@ -75,6 +76,29 @@ def compute_buckets(times_matrix, bucket_size, end_date):
     return buckets
 
 
+def fetch_times(url, start_time):
+    """Fetches the operation timings from the puppet master given its address.
+
+    Keyword arguments:
+    url -- the url of the puppet master
+
+    Returns the global times matrix
+    """
+    req = requests.get(url + '/client')
+    timings = req.json()['timings']
+    id_to_times = np.array(list(map(lambda j: [j['id'], j['start'], j['end']], timings)))
+    end_time = np.max(id_to_times[:, 1:]) - start_time
+    hist = None
+    for client in np.unique(id_to_times[:, 0]):
+        client_times = id_to_times[id_to_times[:, 0] == client][:, 1:] - start_time
+        client_hist = compute_buckets(client_times, 1000, end_time)
+        if hist is None:
+            hist = client_hist
+        else:
+            hist += client_hist
+    return hist
+
+
 if __name__ == "__main__":
     R = int(sys.argv[1])
     N = int(sys.argv[2])
@@ -82,8 +106,9 @@ if __name__ == "__main__":
     start_time = events[0]
     events = [time - start_time for time in events]
     matrix = create_global_matrix(read_logs(N), start_time)
-
     buckets = compute_buckets(matrix, 1000, events[-1])
+    #buckets = fetch_times("http://localhost:9090", start_time)
+
     plt.plot(buckets)
 
     for ev in events[1:-1]:
