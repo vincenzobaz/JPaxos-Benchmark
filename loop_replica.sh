@@ -1,6 +1,6 @@
 #!/bin/bash
 
-comm="java -jar Replica/target/scala-2.12/ReplicaManager.jar $1 $2 $((7000 + $1)) http://127.0.0.1:9090"
+comm="java -jar Replica/target/scala-2.12/ReplicaManager.jar $1 $2 $((7000 + $1)) $3"
 while true
 do
     $comm
