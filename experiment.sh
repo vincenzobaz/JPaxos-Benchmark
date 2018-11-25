@@ -56,7 +56,7 @@ function start_replica_managers {
 		log="$log_folder/replica$i.out"
 		clearLog $log
 		# Listens on 7000 + i
-		comm="./loop_replica.sh $i $2 > $log 2>&1 &"
+		comm="./loop_replica.sh $i $2 $3 > $log 2>&1 &"
 		eval $comm
 	done
 	echo "Starting replica managers"
@@ -76,7 +76,7 @@ function start_clients {
 		log="$log_folder/client$i.out"
 		clearLog $log
 		# Listens on 8000 + i, contacts Master @ 127.0.0.1:9090
-		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) > $log 2>&1 &"
+		comm="java -jar Client/target/scala-2.12/Spammer.jar $2 $((8000 + $i)) $i $3 > $log 2>&1 &"
 		echo $comm
 		eval $comm
 	done

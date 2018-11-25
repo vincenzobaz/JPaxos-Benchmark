@@ -21,11 +21,11 @@ case "$1" in
 		;;
 	"run")
 		clear_logs
-		start_replica_managers $2 $3 # $2=#reps, $3=.properties file
+		start_replica_managers $2 $3 $5 # $2=#reps, $3=.properties file
 		sleep 10s
 		start_replicas $2
 		sleep 10s
-		start_clients $4 $3 # $4=#clients
+		start_clients $4 $3 $5 # $4=#clients $5=puppetmaster address
 		echo "Experiment started, do not forget to stop it!"
 		;;
 	"stop")
