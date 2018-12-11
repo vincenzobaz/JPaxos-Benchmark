@@ -2,8 +2,9 @@ import akka.NotUsed
 import lsr.paxos.client.{Client => PaxosClient}
 import akka.stream.{FlowShape, ThrottleMode, scaladsl}
 import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source}
-import lpd.register.{Command, Response}
 import org.slf4j.{Logger, LoggerFactory}
+import dummyservice.{Command, Response}
+import tools.AkkaConfig
 
 import scala.concurrent.duration._
 
@@ -31,7 +32,7 @@ class LogSpammer(requests: Stream[Command], paxosClient: PaxosClient) extends Ak
   })
 
   Source(requests)
-    //.via(Flow[Command].throttle(3, 1 seconds, 0, ThrottleMode.Shaping))
+    .via(Flow[Command].throttle(100, 1 seconds, 0, ThrottleMode.Shaping))
     .via(graph)
     .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
 }

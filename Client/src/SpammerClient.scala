@@ -1,8 +1,9 @@
 import scala.util.Random
-import lpd.register.{Command, CommandType}
 import lsr.paxos.client.{Client => PaxosClient}
 import lsr.common.Configuration
 import akka.http.scaladsl.Http
+import dummyservice.{Command, CommandType}
+import tools.{AkkaConfig, NetworkStoppable}
 
 object SpammerClient extends App with AkkaConfig with NetworkStoppable {
 

@@ -4,7 +4,8 @@ import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl.{Flow, Source}
 import lsr.paxos.client.{Client => PaxosClient}
-import lpd.register.Command
+import dummyservice.Command
+import tools.{AkkaConfig, ClientProtocol}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Try}
