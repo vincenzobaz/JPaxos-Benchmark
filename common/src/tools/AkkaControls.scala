@@ -1,13 +1,13 @@
+package tools
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.ActorMaterializer
 
 import scala.concurrent.duration._
-import scala.concurrent.Future
-
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 trait AkkaConfig {
   implicit val system: ActorSystem = ActorSystem()
