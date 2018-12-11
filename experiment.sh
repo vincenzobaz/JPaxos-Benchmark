@@ -6,6 +6,12 @@ if [ ! -d $log_folder ]; then
 	mkdir $log_folder
 fi
 
+# $1 address $2 label
+function notifyPM {
+	data="{\"time\": $(date +%s%3N), \"label\": \"$2\"}"
+	curl --header "Content-Type: application/json" --request POST --data "$data" "http://$1/control-events" &> /dev/null &
+}
+
 function clearLog {
 	if [ -f $1 ]; then
 		echo "$1 exists, deleting it"
@@ -23,8 +29,8 @@ function kill_replica {
 function start_replica {
 	echo "Starting replica $1"
 	address="http://127.0.0.1:$((7000 + $1))/start"
-	#res="$(curl --max-time 60 --connect-timeout 60 -s -G $address)"
-	res="$(curl -s -G $address)"
+	res="$(curl --max-time 60 --connect-timeout 60 -s -G $address)"
+	#res="$(curl -s -G $address)"
 	echo "Replica replied: $res"
 }
 
