@@ -1,5 +1,6 @@
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import tools.AkkaConfig
 
 class Receptionist(addresses: Array[String]) extends AkkaConfig {
   val remotes: Array[ReplicaRemote] = addresses.map(ad => new ReplicaRemote(ad))

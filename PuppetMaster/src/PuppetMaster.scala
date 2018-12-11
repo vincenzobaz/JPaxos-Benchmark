@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.util.Timeout
+import tools.{AkkaConfig, ClientProtocol, ReplicaProtocol}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
