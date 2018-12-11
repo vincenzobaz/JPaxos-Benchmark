@@ -18,7 +18,7 @@ class Experiment:
         plt.plot(self.throughput)
         for ev in self.events:
             plt.axvline(x=(ev / 1000), c='r')
-            
+
         plt.title(f'Throughput with {self.replicas} replicas, {self.clients} clients')
         plt.xlabel('Time (s)')
         plt.ylabel('Throughput (#Ops / s)')
@@ -63,18 +63,27 @@ class Experiment:
         }
 
 
-#    @classmethod
-#    def from_puppetmaster(cls, url, start_time)
-#        req = requests.get(url + '/client')
-#        timings = req.json()['timings']
-#        id_to_times = np.array(list(map(lambda j: [j['id'], j['start'], j['end']], timings)))
-#        end_time = np.max(id_to_times[:, 1:]) - start_time
-#        hist = None
-#        for client in np.unique(id_to_times[:, 0]):
-#            client_times = id_to_times[id_to_times[:, 0] == client][:, 1:] - start_time
-#            client_hist = compute_buckets(client_times, 1000, end_time)
-#            if hist is None:
-#                hist = client_hist
-#            else:
-#                hist += client_hist
-#        return 
+    @classmethod
+    def from_puppetmaster(cls, name, url):
+        events = requests.get(url + '/control-events').json() #Array[{time, label}]
+        events = np.array(list(map(lambda ev: ev['time'], events)))
+        views = requests.get(url + '/leaders').json() #Array[{time, localId, newView, newLeader}]
+        timings = requests.get(url + '/client').json() #Array[{id, start, end}]
+        id_to_times = np.array(list(map(lambda j: [j['id'], j['start'], j['end']], timings)))
+
+        R = len(set((ob['localId'] for ob in views)))
+        C = len(np.unique(id_to_times[:, 0]))
+
+        start_time = min(np.min(events), np.min(id_to_times[:, 1:]))
+        end_time = max(np.max(id_to_times[:, 1:]), np.max(events)) - start_time
+        hist = None
+        for client in np.unique(id_to_times[:, 0]):
+            this_client = id_to_times[id_to_times[:, 0] == client]
+            this_client = this_client[:, 1:] - start_time
+            client_hist = compute_buckets(this_client, 1000, end_time)
+            if hist is None:
+                hist = client_hist
+            else:
+                hist += client_hist
+        return cls(name, R, C, (events[1:-1] - start_time), hist, start_time)
+
