@@ -8,9 +8,9 @@ import dummyservice.Command
 import tools.{AkkaConfig, ClientProtocol}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Try}
+import scala.util.Failure
 
-class PuppetMasterSpy(requests: Stream[Command], paxosClient: PaxosClient, localId: Int, puppetMasterAddress: String)
+class PuppetMasterSpy(requests: Source[Command, NotUsed], paxosClient: PaxosClient, localId: Int, puppetMasterAddress: String)
   extends AkkaConfig with ClientProtocol {
 
   val timings: Flow[Command, OperationTiming, NotUsed] = Flow[Command] map { req =>
@@ -34,7 +34,7 @@ class PuppetMasterSpy(requests: Stream[Command], paxosClient: PaxosClient, local
 
   private val poolClientFlow = Http().cachedHostConnectionPool[OperationTiming](host = host, port = port)
 
-  Source(requests)
+  requests
     .via(timings)
     .mapAsync(1)(createReq)
     .via(poolClientFlow)

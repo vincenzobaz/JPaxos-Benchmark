@@ -6,12 +6,10 @@ import org.slf4j.{Logger, LoggerFactory}
 import dummyservice.{Command, Response}
 import tools.AkkaConfig
 
-import scala.concurrent.duration._
-
-class LogSpammer(requests: Stream[Command], paxosClient: PaxosClient) extends AkkaConfig {
+class LogSpammer(requests: Source[Command, NotUsed], paxosClient: PaxosClient) extends AkkaConfig {
   val logger: Logger = LoggerFactory.getLogger(classOf[PaxosClient])
 
-  val graph: Flow[Command, (Command, Response), NotUsed] = Flow.fromGraph( GraphDSL.create() { implicit builder =>
+  val graph: Flow[Command, (Command, Response), NotUsed] = Flow.fromGraph(GraphDSL.create() { implicit builder =>
     import GraphDSL.Implicits._
 
     val serializedCommands = Flow[Command].map(_.toByteArray)
@@ -31,8 +29,7 @@ class LogSpammer(requests: Stream[Command], paxosClient: PaxosClient) extends Ak
     FlowShape(bcast3.in, zipper.out)
   })
 
-  Source(requests)
-    .via(Flow[Command].throttle(100, 1 seconds, 0, ThrottleMode.Shaping))
+  requests
     .via(graph)
-    .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ")}
+    .runForeach { case (cmd, resp) => logger.info(s"Request: ${cmd.toString} - Response: ${resp.toString} ") }
 }

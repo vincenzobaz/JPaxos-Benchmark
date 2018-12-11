@@ -2,8 +2,11 @@ import scala.util.Random
 import lsr.paxos.client.{Client => PaxosClient}
 import lsr.common.Configuration
 import akka.http.scaladsl.Http
+import akka.stream.ThrottleMode
+import akka.stream.scaladsl.{Flow, Source}
 import dummyservice.{Command, CommandType}
 import tools.{AkkaConfig, NetworkStoppable}
+import scala.concurrent.duration._
 
 object SpammerClient extends App with AkkaConfig with NetworkStoppable {
 
@@ -23,13 +26,15 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
       .map(isRead => if (isRead) new Command(CommandType.READ, -1) else new Command(CommandType.WRITE, random.nextInt))
   }
 
+  val comStream = Source(requests).via(Flow[Command].throttle(100, 1 seconds, 0, ThrottleMode.Shaping))
+
   val logger = {
     if (args.length >= 4 && args(3) != "null") {
       println("Starting spy")
-      new PuppetMasterSpy(requests, paxosClient, localId, args(3))
+      new PuppetMasterSpy(comStream, paxosClient, localId, args(3))
     } else {
       println("Starting logger")
-      new LogSpammer(requests, paxosClient)
+      new LogSpammer(comStream, paxosClient)
     }
   }
 }
