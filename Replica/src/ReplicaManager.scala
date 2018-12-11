@@ -1,10 +1,14 @@
+import akka.actor.{ActorRef, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpRequest
+import akka.pattern.ask
 import akka.http.scaladsl.server.Directives._
-import lpd.register.IntRegisterService
+import akka.util.Timeout
 import lsr.common.Configuration
+import dummyservice.IntRegisterService
+import tools.{AkkaConfig, NetworkStoppable}
 
-import scala.util.{Try, Failure, Success}
+import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
   val configFile = args(1)
@@ -18,53 +22,34 @@ object ReplicaManager extends App with AkkaConfig with NetworkStoppable {
     }
   }
 
-  var isRunning = false
-  var replica: DebuggingReplica = null
-
-  def startReplica(): Unit = {
-    replica = new DebuggingReplica(
-      new Configuration(configFile),
-      localId,
-      new IntRegisterService(),
-      masterAddr)
-    replica.start()
-    /*
-    if (masterAddr.nonEmpty) {
-      Http()(system).singleRequest(HttpRequest(uri = s"${masterAddr.get}/$localId/imUp")) onComplete {
-        case Success(_) =>
-        case Failure(e) => println("Could not notify I am up " + e)
-      }
-    }
-    */
-  }
+  private implicit val timeout: Timeout = 1 minute
+  private val replica: ActorRef = system.actorOf(
+    Props(new DebuggingReplica(new Configuration(configFile), localId, new IntRegisterService(), masterAddr)),
+    "remote-replica")
 
   val route =
     stopRoute ~ {
       path("status") {
         get {
-          if (isRunning) complete(replica.leader.toString)
-          else complete("Not running")
-        }
+          complete((replica ? GetStatus).mapTo[StatusResponse].map(_.msg))
+       }
       } ~
         path("start") {
           get {
-            if (!isRunning) {
-              startReplica()
-              isRunning = true
-              complete("Replica started\n")
-            } else {
-              complete("Replica was already running\n")
-            }
+            complete((replica ? Start).mapTo[StartResponse].map(_.msg))
           }
         } ~
         path("kill") {
           get {
-            if (isRunning) {
-              exit(1)
-              complete("Killed\n")
-            } else {
-              complete("Replica was already killed\n")
+            val resp = (replica ? GetStatus).mapTo[StatusResponse].map(_.msg).map { s =>
+              Try(s.toInt) match {
+                case Success(_) =>
+                  exit(1)
+                  "Killed\n"
+                case Failure(_) => "Replica was already killed\n"
+              }
             }
+            complete(resp)
           }
         }
     }
