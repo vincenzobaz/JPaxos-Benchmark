@@ -23,6 +23,7 @@ function kill_replica {
 function start_replica {
 	echo "Starting replica $1"
 	address="http://127.0.0.1:$((7000 + $1))/start"
+	#res="$(curl --max-time 60 --connect-timeout 60 -s -G $address)"
 	res="$(curl -s -G $address)"
 	echo "Replica replied: $res"
 }

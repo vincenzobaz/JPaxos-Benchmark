@@ -14,7 +14,7 @@ lazy val common = (project in file("common"))
     name := "common",
     libraryDependencies ++= dependencies,
     scalaSource in Compile := baseDirectory.value / "src"
-  )
+  ).dependsOn(JPaxos)
 
 lazy val Replica = (project in file("Replica"))
   .settings(
