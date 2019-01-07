@@ -32,8 +32,5 @@
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
-    <root level="info">
-        <appender-ref ref="PUPPETMASTER"/>
-    </root>
 </configuration>
 

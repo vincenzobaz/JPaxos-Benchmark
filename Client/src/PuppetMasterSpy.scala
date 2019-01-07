@@ -10,7 +10,7 @@ import tools.{AkkaConfig, ClientProtocol}
 import scala.concurrent.Future
 import scala.util.Failure
 
-class PuppetMasterSpy(requests: Source[Command, NotUsed], paxosClient: PaxosClient, localId: Int, puppetMasterAddress: String)
+class PuppetMasterSpy(requests: Source[Command, _], paxosClient: PaxosClient, localId: Int, puppetMasterAddress: String)
   extends AkkaConfig with ClientProtocol {
 
   val timings: Flow[Command, OperationTiming, NotUsed] = Flow[Command] map { req =>
