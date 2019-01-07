@@ -22,7 +22,7 @@ object PuppetMaster extends App with AkkaConfig with ClientProtocol with Replica
     post {
       entity(as[OperationTiming]) { ot =>
         timingsHolder ! ot
-        complete(StatusCodes.Accepted)
+        complete(StatusCodes.OK)
       }
     } ~ get {
       val timings: Future[List[OperationTiming]] = (timingsHolder ? Get).mapTo[List[OperationTiming]]
@@ -32,7 +32,7 @@ object PuppetMaster extends App with AkkaConfig with ClientProtocol with Replica
     post {
       entity(as[NewView]) { nv =>
         viewsHolder ! nv
-        complete(StatusCodes.Accepted)
+        complete(StatusCodes.OK)
       }
     }
   } ~ path("leaders") {
@@ -44,11 +44,18 @@ object PuppetMaster extends App with AkkaConfig with ClientProtocol with Replica
     post {
       entity(as[ControlEvent]) { ce =>
         eventsHolder ! ce
-        complete(StatusCodes.Accepted)
+        complete(StatusCodes.OK)
       }
     } ~ get {
       val evs: Future[List[PuppetMaster.ControlEvent]] = (eventsHolder ? Get).mapTo[List[ControlEvent]]
       complete(evs)
+    }
+  } ~ path("reset") {
+    get {
+      timingsHolder ! Reset
+      viewsHolder ! Reset
+      eventsHolder ! Reset
+      complete(StatusCodes.OK)
     }
   }
 
