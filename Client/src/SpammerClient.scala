@@ -26,15 +26,16 @@ object SpammerClient extends App with AkkaConfig with NetworkStoppable {
       .map(isRead => if (isRead) new Command(CommandType.READ, -1) else new Command(CommandType.WRITE, random.nextInt))
   }
 
-  val comStream = Source(requests).via(Flow[Command].throttle(100, 1 seconds, 0, ThrottleMode.Shaping))
+  //val rateLimiter = Flow[Command].throttle(100, 1 seconds, 0, ThrottleMode.Shaping)
+  val slowerStream = Source(requests)//.via(rateLimiter)
 
   val logger = {
     if (args.length >= 4 && args(3) != "null") {
       println("Starting spy")
-      new PuppetMasterSpy(comStream, paxosClient, localId, args(3))
+      new PuppetMasterSpy(slowerStream, paxosClient, localId, args(3))
     } else {
       println("Starting logger")
-      new LogSpammer(comStream, paxosClient)
+      new LogSpammer(slowerStream, paxosClient)
     }
   }
 }

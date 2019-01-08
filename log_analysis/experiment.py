@@ -14,15 +14,19 @@ class Experiment:
         self.replicas = replicas
         self.clients = clients
 
-    def plot(self):
-        plt.plot(self.throughput)
+    def plot(self, ax=None):
+        show = ax is None
+        if ax is None:
+            ax = plt.subplot(111)
+        ax.plot(self.throughput)
         for ev in self.events:
-            plt.axvline(x=(ev / 1000), c='r')
+            ax.axvline(x=(ev / 1000), c='r')
 
-        plt.title(f'Throughput with {self.replicas} replicas, {self.clients} clients')
-        plt.xlabel('Time (s)')
-        plt.ylabel('Throughput (#Ops / s)')
-        plt.show()
+        ax.set_title(f'Throughput with {self.replicas} replicas, {self.clients} clients')
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Throughput (#Ops / s)')
+        if show:
+            plt.show()
 
     def save(self, filename):
         with open(filename, 'wb') as pkl:

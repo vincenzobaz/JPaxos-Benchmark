@@ -9,7 +9,7 @@ class MultiExperiment:
     def plot(self):
         fig = plt.figure()
         ax = plt.subplot(111)
-        colors = ['orange', 'g', 'b']
+        #colors = ['orange', 'g', 'b']
         for color, exp in enumerate(self.experiments):
             ax.plot(exp.throughput, label=exp.name)#, c=colors[color])
             for ev in exp.events:
@@ -17,6 +17,6 @@ class MultiExperiment:
 
         plt.xlabel('Time (s)')
         plt.ylabel('Throughput (#Ops / s)')
-        ax.legend()
+        #ax.legend()
         plt.show()
 

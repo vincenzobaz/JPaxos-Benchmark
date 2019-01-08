@@ -6,6 +6,11 @@ if [ ! -d $log_folder ]; then
 	mkdir $log_folder
 fi
 
+# $1 address
+function resetPM {
+	curl "http://$1/reset"
+}
+
 # $1 address $2 label
 function notifyPM {
 	data="{\"time\": $(date +%s%3N), \"label\": \"$2\"}"
