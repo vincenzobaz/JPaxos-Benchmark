@@ -25,5 +25,5 @@ if __name__ == "__main__":
         for f in filter(lambda n: 'pkl' in n, os.listdir()):
             exps.append(Experiment.from_pickle(f))
         me = MultiExperiment(exps)
-        me.plot()
+        me.plot('Comparison')
 
